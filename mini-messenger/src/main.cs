@@ -6,22 +6,19 @@ class Program
 {
     static void Main(string[] args)
     {
-        // 1. Ініціалізація репозиторію (він сам завантажить файл при створенні)
         JsonRepository repository = new JsonRepository();
 
-        // 2. Перевірка: створюємо базових користувачів лише якщо їх немає
         if (repository.Users.Count == 0)
         {
             repository.AddUser(new User { Id = 1, Username = "Alice" });
             repository.AddUser(new User { Id = 2, Username = "Bob" });
 
             Conversation commonChat = new Conversation { Id = 101, Title = "Чат Аліси та Боба" };
-            commonChat.ParticipantIds.Add(1); // ID Alice
-            commonChat.ParticipantIds.Add(2); // ID Bob
+            commonChat.ParticipantIds.Add(1);
+            commonChat.ParticipantIds.Add(2);
             repository.AddConversation(commonChat);
         }
 
-        // Отримуємо актуальних користувачів з репозиторію
         User alice = repository.Users.First(u => u.Username == "Alice");
         User bob = repository.Users.First(u => u.Username == "Bob");
 
@@ -31,7 +28,6 @@ class Program
         {
             User? currentUser = null;
 
-            // Логін
             while (currentUser == null && isRunning)
             {
                 Console.Clear();
@@ -50,7 +46,6 @@ class Program
 
             if (!isRunning) break;
 
-            // Вибір чату
             Conversation? activeConversation = null;
             while (activeConversation == null && isRunning)
             {
@@ -80,16 +75,26 @@ class Program
                     {
                         Console.Write("Назва нового чату: ");
                         string title = Console.ReadLine() ?? "Новий чат";
-                        activeConversation = new Conversation { Id = repository.Conversations.Count + 1, Title = title };
-                        activeConversation.ParticipantIds.Add(currentUser.Id);
-                        repository.AddConversation(activeConversation);
+                        
+                        var newConv = new Conversation { Id = repository.Conversations.Count + 1, Title = title };
+                        newConv.ParticipantIds.Add(currentUser.Id);
+                        
+                        // Валідація створення чату
+                        if (repository.AddConversation(newConv))
+                        {
+                            activeConversation = newConv;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Натисніть будь-яку клавішу...");
+                            Console.ReadKey();
+                        }
                     }
                 }
             }
 
             if (activeConversation == null) continue;
 
-            // Цикл чату
             while (true)
             {
                 Console.Clear();
@@ -111,16 +116,20 @@ class Program
                 if (userInput.ToLower() == "/quit") { isRunning = false; break; }
                 if (userInput.ToLower() == "/logout") break;
 
-                if (!string.IsNullOrWhiteSpace(userInput))
+                var newMessage = new Message
                 {
-                    repository.AddMessage(new Message
-                    {
-                        Id = repository.Messages.Count + 1,
-                        ConversationId = activeConversation.Id,
-                        SenderId = currentUser.Id,
-                        Text = userInput,
-                        Timestamp = DateTime.Now
-                    });
+                    Id = repository.Messages.Count + 1,
+                    ConversationId = activeConversation.Id,
+                    SenderId = currentUser.Id,
+                    Text = userInput,
+                    Timestamp = DateTime.Now
+                };
+
+                // ВАЛІДАЦІЯ ПОВІДОМЛЕННЯ
+                if (!repository.AddMessage(newMessage))
+                {
+                    Console.WriteLine("\nНатисніть будь-яку клавішу для продовження...");
+                    Console.ReadKey();
                 }
             }
         }

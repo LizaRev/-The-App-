@@ -1,0 +1,66 @@
+{
+  "Users": [
+    {
+      "Id": 1,
+      "Username": "Alice"
+    },
+    {
+      "Id": 2,
+      "Username": "Bob"
+    }
+  ],
+  "Conversations": [
+    {
+      "Id": 101,
+      "Title": "\u0427\u0430\u0442 \u0410\u043B\u0456\u0441\u0438 \u0442\u0430 \u0411\u043E\u0431\u0430",
+      "ParticipantIds": [
+        1,
+        2
+      ]
+    },
+    {
+      "Id": 2,
+      "Title": "jjj",
+      "ParticipantIds": [
+        1
+      ]
+    },
+    {
+      "Id": 3,
+      "Title": "jjfjfjfj",
+      "ParticipantIds": [
+        1
+      ]
+    }
+  ],
+  "Messages": [
+    {
+      "Id": 1,
+      "ConversationId": 101,
+      "SenderId": 1,
+      "Text": "\u043F\u0440\u0438\u0432\u0435\u0442",
+      "Timestamp": "2026-05-31T11:42:11.59604+03:00"
+    },
+    {
+      "Id": 2,
+      "ConversationId": 101,
+      "SenderId": 2,
+      "Text": "\u043F\u043E\u043A\u0430",
+      "Timestamp": "2026-05-31T11:42:29.359116+03:00"
+    },
+    {
+      "Id": 3,
+      "ConversationId": 2,
+      "SenderId": 1,
+      "Text": "koo",
+      "Timestamp": "2026-05-31T11:43:41.386971+03:00"
+    },
+    {
+      "Id": 4,
+      "ConversationId": 3,
+      "SenderId": 1,
+      "Text": "fff",
+      "Timestamp": "2026-05-31T11:43:56.020246+03:00"
+    }
+  ]
+}

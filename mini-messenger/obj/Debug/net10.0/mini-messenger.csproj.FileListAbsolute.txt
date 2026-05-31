@@ -1,0 +1,15 @@
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.GeneratedMSBuildEditorConfig.editorconfig
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.AssemblyInfoInputs.cache
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.AssemblyInfo.cs
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.csproj.CoreCompileInputs.cache
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.sourcelink.json
+/Users/elizavetarevun/lab1new/mini-messenger/bin/Debug/net10.0/mini-messenger
+/Users/elizavetarevun/lab1new/mini-messenger/bin/Debug/net10.0/mini-messenger.deps.json
+/Users/elizavetarevun/lab1new/mini-messenger/bin/Debug/net10.0/mini-messenger.runtimeconfig.json
+/Users/elizavetarevun/lab1new/mini-messenger/bin/Debug/net10.0/mini-messenger.dll
+/Users/elizavetarevun/lab1new/mini-messenger/bin/Debug/net10.0/mini-messenger.pdb
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.dll
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/refint/mini-messenger.dll
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.pdb
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/mini-messenger.genruntimeconfig.cache
+/Users/elizavetarevun/lab1new/mini-messenger/obj/Debug/net10.0/ref/mini-messenger.dll

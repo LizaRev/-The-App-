@@ -8,18 +8,6 @@ class Program
     {
         JsonRepository repository = new JsonRepository();
 
-        if (repository.Users.Count == 0)
-        {
-            repository.AddUser(new User { Id = 1, Username = "Alice" });
-            repository.AddUser(new User { Id = 2, Username = "Bob" });
-            repository.AddUser(new User { Id = 3, Username = "Charlie" });
-
-            Conversation commonChat = new Conversation { Id = 101, Title = "Чат Аліси та Боба" };
-            commonChat.ParticipantIds.Add(1);
-            commonChat.ParticipantIds.Add(2);
-            repository.AddConversation(commonChat);
-        }
-
         bool isRunning = true;
 
         while (isRunning)
@@ -32,14 +20,28 @@ class Program
                 Console.WriteLine("ВХІД В МЕСЕНДЖЕР");
                 foreach (var u in repository.Users)
                     Console.WriteLine(u.Id + ". Увійти як " + u.Username);
+                
                 Console.WriteLine("-------------------------");
-                Console.WriteLine("Або /quit");
+                Console.WriteLine("R. Зареєструвати нового користувача");
+                Console.WriteLine("/quit - Вихід");
                 Console.Write("Ваш вибір: ");
 
                 string choice = Console.ReadLine() ?? "";
                 if (choice.ToLower() == "/quit") { isRunning = false; break; }
                 
-                if (int.TryParse(choice, out int userId))
+                if (choice.ToLower() == "r")
+                {
+                    Console.Write("Введіть ім'я користувача: ");
+                    string name = Console.ReadLine() ?? "";
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        int newId = repository.Users.Count > 0 ? repository.Users.Max(u => u.Id) + 1 : 1;
+                        repository.AddUser(new User { Id = newId, Username = name });
+                        Console.WriteLine("Користувача створено!");
+                        Console.ReadKey();
+                    }
+                }
+                else if (int.TryParse(choice, out int userId))
                     currentUser = repository.Users.FirstOrDefault(u => u.Id == userId);
             }
 
@@ -55,7 +57,18 @@ class Program
                 var userChats = repository.Conversations.Where(c => c.ParticipantIds.Contains(currentUser.Id)).ToList();
                 for (int i = 0; i < userChats.Count; i++)
                 {
-                    Console.WriteLine((i + 1) + ". " + userChats[i].Title);
+                    var chat = userChats[i];
+                    string displayName = chat.Title;
+                    
+                    // Розумне відображення назви для чатів з 2 людьми
+                    if (chat.ParticipantIds.Count == 2)
+                    {
+                        int otherUserId = chat.ParticipantIds.First(id => id != currentUser.Id);
+                        var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherUserId);
+                        if (otherUser != null) displayName = "Чат з " + otherUser.Username;
+                    }
+                    
+                    Console.WriteLine((i + 1) + ". " + displayName);
                 }
                 Console.WriteLine((userChats.Count + 1) + ". [Створити новий чат]");
                 Console.WriteLine("0. Вийти з акаунту");
@@ -73,7 +86,8 @@ class Program
                     else if (index == userChats.Count + 1)
                     {
                         Console.WriteLine("Оберіть користувача для чату:");
-                        foreach (var u in repository.Users.Where(u => u.Id != currentUser.Id))
+                        var others = repository.Users.Where(u => u.Id != currentUser.Id).ToList();
+                        foreach (var u in others)
                             Console.WriteLine(u.Id + ". " + u.Username);
                         
                         Console.Write("ID: ");
@@ -103,8 +117,17 @@ class Program
 
             while (true)
             {
+                // Для заголовка чату теж зробимо розумну назву
+                string chatTitle = activeConversation.Title;
+                if (activeConversation.ParticipantIds.Count == 2)
+                {
+                    int otherId = activeConversation.ParticipantIds.First(id => id != currentUser.Id);
+                    var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherId);
+                    if (otherUser != null) chatTitle = "Чат з " + otherUser.Username;
+                }
+
                 Console.Clear();
-                Console.WriteLine("=== Чат: " + activeConversation.Title + " ===");
+                Console.WriteLine("=== " + chatTitle + " ===");
                 Console.WriteLine("Ви: " + currentUser!.Username + " (/logout - вихід, /quit - вихід)");
                 Console.WriteLine("-----------------------------------");
 

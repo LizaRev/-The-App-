@@ -7,6 +7,10 @@
     {
       "Id": 2,
       "Username": "Bob"
+    },
+    {
+      "Id": 3,
+      "Username": "Liza"
     }
   ],
   "Conversations": [
@@ -30,6 +34,30 @@
       "Title": "jjfjfjfj",
       "ParticipantIds": [
         1
+      ]
+    },
+    {
+      "Id": 4,
+      "Title": "\u0427\u0430\u0442 \u0437 Alice",
+      "ParticipantIds": [
+        1,
+        1
+      ]
+    },
+    {
+      "Id": 5,
+      "Title": "\u0427\u0430\u0442 \u0437 Bob",
+      "ParticipantIds": [
+        1,
+        2
+      ]
+    },
+    {
+      "Id": 6,
+      "Title": "\u0427\u0430\u0442 \u0437 Bob",
+      "ParticipantIds": [
+        3,
+        2
       ]
     }
   ],
@@ -68,6 +96,20 @@
       "SenderId": 1,
       "Text": "df",
       "Timestamp": "2026-06-02T13:54:01.209489+03:00"
+    },
+    {
+      "Id": 6,
+      "ConversationId": 5,
+      "SenderId": 1,
+      "Text": "/\u0439\u0433\u0448\u0435",
+      "Timestamp": "2026-06-03T13:15:55.054218+03:00"
+    },
+    {
+      "Id": 7,
+      "ConversationId": 6,
+      "SenderId": 3,
+      "Text": "\u043F\u0440\u0438\u0432\u0456\u0442!",
+      "Timestamp": "2026-06-03T13:16:51.477031+03:00"
     }
   ]
 }

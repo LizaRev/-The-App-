@@ -127,22 +127,29 @@ class Program
                 if (input.ToLower() == "/logout") break;
 
                 if (input.ToLower().StartsWith("/search"))
-                {
-                    if (input.Length > 8)
-                    {
-                        string query = input.Substring(8);
-                        Console.WriteLine($"\n--- Результати пошуку '{query}' ---");
-                        var results = repository.Messages.Where(m => m.Text.Contains(query, StringComparison.OrdinalIgnoreCase));
-                        foreach (var m in results)
-                            Console.WriteLine($"[{m.Timestamp:HH:mm}] {m.Text}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Помилка: Введіть текст після /search");
-                    }
-                    Console.WriteLine("\nНатисніть будь-яку клавішу...");
-                    Console.ReadKey();
-                }
+{
+    if (input.Length > 8)
+    {
+        string query = input.Substring(8);
+
+        Console.WriteLine("\n--- Результати пошуку '" + query + "' ---");
+
+        var results = repository.Messages.Where(
+            m => m.Text.Contains(query, StringComparison.OrdinalIgnoreCase));
+
+        foreach (var m in results)
+        {
+            Console.WriteLine("[" + m.Timestamp.ToString("HH:mm") + "] " + m.Text);
+        }
+    }
+    else
+    {
+        Console.WriteLine("Помилка: Введіть текст після /search");
+    }
+
+    Console.WriteLine("\nНатисніть будь-яку клавішу...");
+    Console.ReadKey();
+}
                 else if (!string.IsNullOrWhiteSpace(input))
                 {
                     repository.AddMessage(new Message { 

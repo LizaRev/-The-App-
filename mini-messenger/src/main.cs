@@ -7,7 +7,6 @@ class Program
     static void Main(string[] args)
     {
         JsonRepository repository = new JsonRepository();
-
         bool isRunning = true;
 
         while (isRunning)
@@ -17,13 +16,12 @@ class Program
             while (currentUser == null && isRunning)
             {
                 Console.Clear();
-                Console.WriteLine("ВХІД В МЕСЕНДЖЕР");
+                Console.WriteLine("=== ВХІД В МЕСЕНДЖЕР ===");
                 foreach (var u in repository.Users)
                     Console.WriteLine(u.Id + ". Увійти як " + u.Username);
                 
                 Console.WriteLine("-------------------------");
-                Console.WriteLine("R. Зареєструвати нового користувача");
-                Console.WriteLine("/quit - Вихід");
+                Console.WriteLine("R - Зареєструватись | /quit - Вихід");
                 Console.Write("Ваш вибір: ");
 
                 string choice = Console.ReadLine() ?? "";
@@ -31,7 +29,7 @@ class Program
                 
                 if (choice.ToLower() == "r")
                 {
-                    Console.Write("Введіть ім'я користувача: ");
+                    Console.Write("Введіть ім'я: ");
                     string name = Console.ReadLine() ?? "";
                     if (!string.IsNullOrWhiteSpace(name))
                     {
@@ -59,15 +57,12 @@ class Program
                 {
                     var chat = userChats[i];
                     string displayName = chat.Title;
-                    
-                    // Розумне відображення назви для чатів з 2 людьми
-                    if (chat.ParticipantIds.Count == 2)
+                    var otherId = chat.ParticipantIds.FirstOrDefault(id => id != currentUser.Id);
+                    if (otherId != 0)
                     {
-                        int otherUserId = chat.ParticipantIds.First(id => id != currentUser.Id);
-                        var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherUserId);
+                        var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherId);
                         if (otherUser != null) displayName = "Чат з " + otherUser.Username;
                     }
-                    
                     Console.WriteLine((i + 1) + ". " + displayName);
                 }
                 Console.WriteLine((userChats.Count + 1) + ". [Створити новий чат]");
@@ -79,34 +74,22 @@ class Program
 
                 if (int.TryParse(chatChoice, out int index))
                 {
-                    if (index <= userChats.Count)
-                    {
-                        activeConversation = userChats[index - 1];
-                    }
+                    if (index <= userChats.Count) activeConversation = userChats[index - 1];
                     else if (index == userChats.Count + 1)
                     {
-                        Console.WriteLine("Оберіть користувача для чату:");
-                        var others = repository.Users.Where(u => u.Id != currentUser.Id).ToList();
-                        foreach (var u in others)
+                        Console.WriteLine("Оберіть ID користувача:");
+                        foreach (var u in repository.Users.Where(u => u.Id != currentUser.Id))
                             Console.WriteLine(u.Id + ". " + u.Username);
                         
-                        Console.Write("ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int otherUserId))
+                        if (int.TryParse(Console.ReadLine(), out int otherId))
                         {
-                            var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherUserId);
+                            var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherId);
                             if (otherUser != null)
                             {
-                                var newConv = new Conversation { Id = repository.Conversations.Count + 1, Title = "Чат з " + otherUser.Username };
+                                var newConv = new Conversation { Id = repository.Conversations.Count + 1, Title = "Чат" };
                                 newConv.ParticipantIds.Add(currentUser.Id);
                                 newConv.ParticipantIds.Add(otherUser.Id);
-                                
-                                if (repository.AddConversation(newConv))
-                                    activeConversation = newConv;
-                                else
-                                {
-                                    Console.WriteLine("Помилка створення чату.");
-                                    Console.ReadKey();
-                                }
+                                if (repository.AddConversation(newConv)) activeConversation = newConv;
                             }
                         }
                     }
@@ -117,49 +100,58 @@ class Program
 
             while (true)
             {
-                // Для заголовка чату теж зробимо розумну назву
                 string chatTitle = activeConversation.Title;
-                if (activeConversation.ParticipantIds.Count == 2)
+                var otherId = activeConversation.ParticipantIds.FirstOrDefault(id => id != currentUser!.Id);
+                if (otherId != 0)
                 {
-                    int otherId = activeConversation.ParticipantIds.First(id => id != currentUser.Id);
                     var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherId);
                     if (otherUser != null) chatTitle = "Чат з " + otherUser.Username;
                 }
 
                 Console.Clear();
                 Console.WriteLine("=== " + chatTitle + " ===");
-                Console.WriteLine("Ви: " + currentUser!.Username + " (/logout - вихід, /quit - вихід)");
+                Console.WriteLine("ДОПОМОГА: /search [текст] - знайти смс | /logout - вийти з чату | /quit - закрити програму");
                 Console.WriteLine("-----------------------------------");
 
                 foreach (var msg in repository.GetMessagesForConversation(activeConversation.Id))
                 {
-                    string senderName = repository.Users.FirstOrDefault(u => u.Id == msg.SenderId)?.Username ?? "Unknown";
-                    Console.WriteLine("[" + msg.Timestamp.ToString("HH:mm:ss") + "] " + senderName + ": " + msg.Text);
+                    var sender = repository.Users.FirstOrDefault(u => u.Id == msg.SenderId);
+                    Console.WriteLine($"[{msg.Timestamp:HH:mm:ss}] {sender?.Username ?? "Unknown"}: {msg.Text}");
                 }
 
                 Console.WriteLine("-----------------------------------");
                 Console.Write("> ");
 
-                string userInput = Console.ReadLine() ?? "";
-                if (userInput.ToLower() == "/quit") { isRunning = false; break; }
-                if (userInput.ToLower() == "/logout") break;
+                string input = Console.ReadLine() ?? "";
+                if (input.ToLower() == "/quit") { isRunning = false; break; }
+                if (input.ToLower() == "/logout") break;
 
-                if (!string.IsNullOrWhiteSpace(userInput))
+                if (input.ToLower().StartsWith("/search"))
                 {
-                    var newMessage = new Message
+                    if (input.Length > 8)
                     {
-                        Id = repository.Messages.Count + 1,
-                        ConversationId = activeConversation.Id,
-                        SenderId = currentUser.Id,
-                        Text = userInput,
-                        Timestamp = DateTime.Now
-                    };
-
-                    if (!repository.AddMessage(newMessage))
-                    {
-                        Console.WriteLine("\nНатисніть будь-яку клавішу...");
-                        Console.ReadKey();
+                        string query = input.Substring(8);
+                        Console.WriteLine($"\n--- Результати пошуку '{query}' ---");
+                        var results = repository.Messages.Where(m => m.Text.Contains(query, StringComparison.OrdinalIgnoreCase));
+                        foreach (var m in results)
+                            Console.WriteLine($"[{m.Timestamp:HH:mm}] {m.Text}");
                     }
+                    else
+                    {
+                        Console.WriteLine("Помилка: Введіть текст після /search");
+                    }
+                    Console.WriteLine("\nНатисніть будь-яку клавішу...");
+                    Console.ReadKey();
+                }
+                else if (!string.IsNullOrWhiteSpace(input))
+                {
+                    repository.AddMessage(new Message { 
+                        Id = repository.Messages.Count + 1, 
+                        ConversationId = activeConversation.Id, 
+                        SenderId = currentUser.Id, 
+                        Text = input, 
+                        Timestamp = DateTime.Now 
+                    });
                 }
             }
         }

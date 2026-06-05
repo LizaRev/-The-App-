@@ -110,6 +110,27 @@
       "SenderId": 3,
       "Text": "\u043F\u0440\u0438\u0432\u0456\u0442!",
       "Timestamp": "2026-06-03T13:16:51.477031+03:00"
+    },
+    {
+      "Id": 8,
+      "ConversationId": 101,
+      "SenderId": 1,
+      "Text": "/searc \u003Cof\u003E",
+      "Timestamp": "2026-06-05T11:36:30.716369+03:00"
+    },
+    {
+      "Id": 9,
+      "ConversationId": 101,
+      "SenderId": 1,
+      "Text": "/\u0439\u0433\u0448\u0435",
+      "Timestamp": "2026-06-05T11:37:48.54963+03:00"
+    },
+    {
+      "Id": 10,
+      "ConversationId": 101,
+      "SenderId": 1,
+      "Text": "/qyit",
+      "Timestamp": "2026-06-05T11:37:53.645483+03:00"
     }
   ]
 }

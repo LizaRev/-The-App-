@@ -6,7 +6,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        JsonRepository repository = new JsonRepository();
+        // Тепер використовуємо SqliteRepository. 
+        // Він реалізує IRepository, тому весь функціонал (пошук, валідація) працюватиме.
+        IRepository repository = new SqliteRepository(); 
         bool isRunning = true;
 
         while (isRunning)
@@ -16,8 +18,8 @@ class Program
             while (currentUser == null && isRunning)
             {
                 Console.Clear();
-                Console.WriteLine("=== ВХІД В МЕСЕНДЖЕР ===");
-                foreach (var u in repository.Users)
+                Console.WriteLine("=== ВХІД В МЕСЕНДЖЕР (SQLite) ===");
+                foreach (var u in repository.GetUsers())
                     Console.WriteLine(u.Id + ". Увійти як " + u.Username);
                 
                 Console.WriteLine("-------------------------");
@@ -33,14 +35,15 @@ class Program
                     string name = Console.ReadLine() ?? "";
                     if (!string.IsNullOrWhiteSpace(name))
                     {
-                        int newId = repository.Users.Count > 0 ? repository.Users.Max(u => u.Id) + 1 : 1;
+                        var users = repository.GetUsers();
+                        int newId = users.Count > 0 ? users.Max(u => u.Id) + 1 : 1;
                         repository.AddUser(new User { Id = newId, Username = name });
                         Console.WriteLine("Користувача створено!");
                         Console.ReadKey();
                     }
                 }
                 else if (int.TryParse(choice, out int userId))
-                    currentUser = repository.Users.FirstOrDefault(u => u.Id == userId);
+                    currentUser = repository.GetUsers().FirstOrDefault(u => u.Id == userId);
             }
 
             if (!isRunning) break;
@@ -52,15 +55,16 @@ class Program
                 Console.WriteLine("Користувач: " + currentUser!.Username);
                 Console.WriteLine("Оберіть чат:");
 
-                var userChats = repository.Conversations.Where(c => c.ParticipantIds.Contains(currentUser.Id)).ToList();
+                var userChats = repository.GetConversationsForUser(currentUser.Id);
                 for (int i = 0; i < userChats.Count; i++)
                 {
                     var chat = userChats[i];
                     string displayName = chat.Title;
+                    // Знаходимо іншого учасника чату для назви
                     var otherId = chat.ParticipantIds.FirstOrDefault(id => id != currentUser.Id);
                     if (otherId != 0)
                     {
-                        var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherId);
+                        var otherUser = repository.GetUsers().FirstOrDefault(u => u.Id == otherId);
                         if (otherUser != null) displayName = "Чат з " + otherUser.Username;
                     }
                     Console.WriteLine((i + 1) + ". " + displayName);
@@ -78,15 +82,15 @@ class Program
                     else if (index == userChats.Count + 1)
                     {
                         Console.WriteLine("Оберіть ID користувача:");
-                        foreach (var u in repository.Users.Where(u => u.Id != currentUser.Id))
+                        foreach (var u in repository.GetUsers().Where(u => u.Id != currentUser.Id))
                             Console.WriteLine(u.Id + ". " + u.Username);
                         
                         if (int.TryParse(Console.ReadLine(), out int otherId))
                         {
-                            var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherId);
+                            var otherUser = repository.GetUsers().FirstOrDefault(u => u.Id == otherId);
                             if (otherUser != null)
                             {
-                                var newConv = new Conversation { Id = repository.Conversations.Count + 1, Title = "Чат" };
+                                var newConv = new Conversation { Title = "Чат" };
                                 newConv.ParticipantIds.Add(currentUser.Id);
                                 newConv.ParticipantIds.Add(otherUser.Id);
                                 if (repository.AddConversation(newConv)) activeConversation = newConv;
@@ -104,18 +108,18 @@ class Program
                 var otherId = activeConversation.ParticipantIds.FirstOrDefault(id => id != currentUser!.Id);
                 if (otherId != 0)
                 {
-                    var otherUser = repository.Users.FirstOrDefault(u => u.Id == otherId);
+                    var otherUser = repository.GetUsers().FirstOrDefault(u => u.Id == otherId);
                     if (otherUser != null) chatTitle = "Чат з " + otherUser.Username;
                 }
 
                 Console.Clear();
                 Console.WriteLine("=== " + chatTitle + " ===");
-                Console.WriteLine("ДОПОМОГА: /search [текст] - знайти смс | /logout - вийти з чату | /quit - закрити програму");
+                Console.WriteLine("ДОПОМОГА: /search [текст] | /logout - вийти | /quit - закрити");
                 Console.WriteLine("-----------------------------------");
 
                 foreach (var msg in repository.GetMessagesForConversation(activeConversation.Id))
                 {
-                    var sender = repository.Users.FirstOrDefault(u => u.Id == msg.SenderId);
+                    var sender = repository.GetUsers().FirstOrDefault(u => u.Id == msg.SenderId);
                     Console.WriteLine($"[{msg.Timestamp:HH:mm:ss}] {sender?.Username ?? "Unknown"}: {msg.Text}");
                 }
 
@@ -127,33 +131,22 @@ class Program
                 if (input.ToLower() == "/logout") break;
 
                 if (input.ToLower().StartsWith("/search"))
-{
-    if (input.Length > 8)
-    {
-        string query = input.Substring(8);
-
-        Console.WriteLine("\n--- Результати пошуку '" + query + "' ---");
-
-        var results = repository.Messages.Where(
-            m => m.Text.Contains(query, StringComparison.OrdinalIgnoreCase));
-
-        foreach (var m in results)
-        {
-            Console.WriteLine("[" + m.Timestamp.ToString("HH:mm") + "] " + m.Text);
-        }
-    }
-    else
-    {
-        Console.WriteLine("Помилка: Введіть текст після /search");
-    }
-
-    Console.WriteLine("\nНатисніть будь-яку клавішу...");
-    Console.ReadKey();
-}
+                {
+                    if (input.Length > 8)
+                    {
+                        string query = input.Substring(8);
+                        var results = repository.GetMessagesForConversation(activeConversation.Id)
+                                                .Where(m => m.Text.Contains(query, StringComparison.OrdinalIgnoreCase));
+                        Console.WriteLine("\n--- Результати пошуку '" + query + "' ---");
+                        foreach (var m in results)
+                            Console.WriteLine("[" + m.Timestamp.ToString("HH:mm") + "] " + m.Text);
+                    }
+                    Console.WriteLine("\nНатисніть будь-яку клавішу...");
+                    Console.ReadKey();
+                }
                 else if (!string.IsNullOrWhiteSpace(input))
                 {
                     repository.AddMessage(new Message { 
-                        Id = repository.Messages.Count + 1, 
                         ConversationId = activeConversation.Id, 
                         SenderId = currentUser.Id, 
                         Text = input, 

@@ -6,8 +6,6 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Тепер використовуємо SqliteRepository. 
-        // Він реалізує IRepository, тому весь функціонал (пошук, валідація) працюватиме.
         IRepository repository = new SqliteRepository(); 
         bool isRunning = true;
 

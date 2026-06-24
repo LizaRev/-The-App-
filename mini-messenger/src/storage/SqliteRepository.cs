@@ -8,7 +8,6 @@ public class SqliteRepository : IRepository
 
     public SqliteRepository() => _db.Database.EnsureCreated();
 
-    // Властивості, які вимагає IRepository
     public List<User> Users => _db.Users.ToList();
     public List<Conversation> Conversations => _db.Conversations.ToList();
     public List<Message> Messages => _db.Messages.ToList();
@@ -32,7 +31,6 @@ public class SqliteRepository : IRepository
 
     public bool AddMessage(Message message)
     {
-        // Додаємо базову перевірку (якщо треба складнішу, можна винести в метод)
         if (string.IsNullOrWhiteSpace(message.Text)) return false;
         
         _db.Messages.Add(message);

@@ -9,11 +9,9 @@ public class Conversation
     
     public string Title { get; set; } = "";
     
-    // Ігноруємо це поле в базі, бо список не можна зберегти прямо в колонку SQLite
     [NotMapped] 
     public List<int> ParticipantIds { get; set; } = new List<int>();
     
-    // Це поле буде зберігатися в БД як текст: "1,2,3"
     public string ParticipantIdsString 
     { 
         get => string.Join(",", ParticipantIds);

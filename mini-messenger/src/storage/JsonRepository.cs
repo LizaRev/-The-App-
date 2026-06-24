@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-// Переконайся, що клас DataStorage доступний у цьому файлі (або додай його сюди)
 public class DataStorage
 {
     public List<User> Users { get; set; } = new List<User>();
@@ -17,7 +16,6 @@ public class JsonRepository : IRepository
     private readonly string filePath = "data/messages.json";
     private DataStorage _data = new DataStorage();
 
-    // Реалізація властивостей інтерфейсу
     public List<User> Users => _data.Users;
     public List<Conversation> Conversations => _data.Conversations;
     public List<Message> Messages => _data.Messages;

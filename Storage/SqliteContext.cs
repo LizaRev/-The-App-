@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using MessengerGui.Models; // Важливо для бачення User, Message, Conversation
+using MessengerGui.Models; 
 
 namespace MessengerGui.Storage
 {

@@ -16,7 +16,6 @@ namespace MessengerGui.Models
         [NotMapped] 
         public List<int> ParticipantIds { get; set; } = new List<int>();
         
-        // Для зберігання списку ID у SQLite як одного рядка (напр: "1,2,3")
         public string ParticipantIdsString 
         { 
             get => string.Join(",", ParticipantIds);

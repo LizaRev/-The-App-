@@ -9,6 +9,6 @@ namespace MessengerGui.Models
         public int SenderId { get; set; }
         public string Text { get; set; } = "";
         public DateTime Timestamp { get; set; }
-        public string? FilePath { get; set; } // Для фото/відео
+        public string? FilePath { get; set; } 
     }
 }

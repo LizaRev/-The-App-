@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:MessengerGui.Models"
+        x:Class="MessengerGui.CreateChatWindow"
+        Title="Створити новий чат" 
+        Width="300" Height="350"
+        WindowStartupLocation="CenterOwner">
+    
+    <StackPanel Margin="20" Spacing="10">
+        <TextBox Name="TitleInput" Watermark="Назва чату"/>
+        <TextBlock Text="Оберіть учасників:"/>
+        <ListBox Name="UserSelector" Height="180" Background="#f0f0f0">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="models:User">
+                    <CheckBox Content="{Binding Username}" Tag="{Binding .}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Button Content="Створити" 
+                Click="Confirm_Click" 
+                Background="#ff007f" 
+                Foreground="White" 
+                HorizontalAlignment="Stretch" 
+                HorizontalContentAlignment="Center"/>
+    </StackPanel>
+</Window>

@@ -1,0 +1,10 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MessengerGui.AddUserWindow"
+        Title="Додати користувача" Width="300" Height="150"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="20" Spacing="10">
+        <TextBox Name="NameInput" Watermark="Введіть ім'я..."/>
+        <Button Content="Додати" Click="Add_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+    </StackPanel>
+</Window>

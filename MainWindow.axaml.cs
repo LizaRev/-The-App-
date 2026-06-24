@@ -77,9 +77,12 @@ public partial class MainWindow : Window
     }
 
     public void MessageInput_KeyDown(object sender, KeyEventArgs e) {
-        if (e.Key == Key.Enter) Send_Message(sender, e);
+        if (e.Key == Key.Enter) {
+            Send_Message(sender, e);
+        }
     }
 
+    // Виправлено: аргумент тепер RoutedEventArgs (базовий клас для KeyEventArgs та інших)
     public void Send_Message(object sender, RoutedEventArgs e) {
         if (_activeChat != null && _currentUser != null && !string.IsNullOrWhiteSpace(MessageInput.Text)) {
             _repo.AddMessage(new Message { ConversationId = _activeChat.Id, SenderId = _currentUser.Id, Text = MessageInput.Text, Timestamp = DateTime.Now });

@@ -6,11 +6,13 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MessengerGui.Models;
 using MessengerGui.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia.Controls.Primitives;
 
 namespace MessengerGui;
 
@@ -36,9 +38,52 @@ public partial class MainWindow : Window
 
     public MainWindow() { InitializeComponent(); UserListBox.ItemsSource = _repo.GetUsers(); }
 
-    public void Open_Emoji_Popup(object sender, RoutedEventArgs e) => EmojiPopup.IsOpen = !EmojiPopup.IsOpen;
     public void Insert_Emoji(object sender, RoutedEventArgs e) {
-        if (sender is Button btn && btn.Content is string emoji) { MessageInput.Text += emoji; EmojiPopup.IsOpen = false; }
+        if (sender is Button btn && btn.Content is string emoji) { 
+            MessageInput.Text += emoji; 
+            var flyout = btn.FindAncestorOfType<FlyoutPresenter>();
+            if (flyout?.Parent is Popup host) host.IsOpen = false;
+        }
+    }
+
+    public void RefreshMessages() {
+        if (_activeChat == null || _currentUser == null) return;
+        
+        var messages = _repo.GetMessagesForConversation(_activeChat.Id);
+        var viewModels = new List<MessageViewModel>();
+        DateTime lastDate = DateTime.MinValue;
+
+        foreach (var m in messages) {
+            var vm = new MessageViewModel {
+                Id = m.Id, 
+                Text = m.Text, 
+                Timestamp = m.Timestamp,
+                SenderName = _repo.GetUsers().FirstOrDefault(u => u.Id == m.SenderId)?.Username ?? "Unknown",
+                IsCurrentUser = (m.SenderId == _currentUser.Id)
+            };
+
+            if (m.Timestamp.Date != lastDate.Date) {
+                vm.ShowDateHeader = true;
+                lastDate = m.Timestamp;
+            } else {
+                vm.ShowDateHeader = false;
+            }
+            viewModels.Add(vm);
+        }
+
+        MessageList.ItemsSource = viewModels;
+        if (viewModels.Count > 0) Dispatcher.UIThread.Post(() => MessageList.ScrollIntoView(viewModels.Last()));
+    }
+
+    public void Search_TextChanged(object sender, TextChangedEventArgs e) {
+        string s = SearchInput.Text?.ToLower() ?? "";
+        bool show = !string.IsNullOrWhiteSpace(s);
+        SearchResults.IsVisible = show;
+        if (show && _activeChat != null) SearchResults.ItemsSource = _repo.GetMessagesForConversation(_activeChat.Id)
+            .Where(m => m.Text.ToLower().Contains(s)).Select(m => new MessageViewModel { 
+                Id = m.Id, Text = m.Text, Timestamp = m.Timestamp,
+                SenderName = _repo.GetUsers().FirstOrDefault(u => u.Id == m.SenderId)?.Username ?? "Unknown"
+            }).ToList();
     }
 
     public void Delete_User_Click(object sender, RoutedEventArgs e) {
@@ -77,29 +122,15 @@ public partial class MainWindow : Window
     }
 
     public void MessageInput_KeyDown(object sender, KeyEventArgs e) {
-        if (e.Key == Key.Enter) {
-            Send_Message(sender, e);
-        }
+        if (e.Key == Key.Enter) Send_Message(sender, e);
     }
 
-    // Виправлено: аргумент тепер RoutedEventArgs (базовий клас для KeyEventArgs та інших)
     public void Send_Message(object sender, RoutedEventArgs e) {
         if (_activeChat != null && _currentUser != null && !string.IsNullOrWhiteSpace(MessageInput.Text)) {
             _repo.AddMessage(new Message { ConversationId = _activeChat.Id, SenderId = _currentUser.Id, Text = MessageInput.Text, Timestamp = DateTime.Now });
             MessageInput.Text = ""; 
             RefreshMessages();
         }
-    }
-
-    public void RefreshMessages() {
-        if (_activeChat == null || _currentUser == null) return;
-        var viewModels = _repo.GetMessagesForConversation(_activeChat.Id).Select(m => new MessageViewModel {
-            Id = m.Id, Text = m.Text, Timestamp = m.Timestamp,
-            SenderName = _repo.GetUsers().FirstOrDefault(u => u.Id == m.SenderId)?.Username ?? "Unknown",
-            IsCurrentUser = (m.SenderId == _currentUser.Id)
-        }).ToList();
-        MessageList.ItemsSource = viewModels;
-        if (viewModels.Count > 0) Dispatcher.UIThread.Post(() => MessageList.ScrollIntoView(viewModels.Last()));
     }
 
     public async void Open_AddUser_Dialog(object sender, RoutedEventArgs e) {
@@ -116,14 +147,6 @@ public partial class MainWindow : Window
             foreach (var user in dialog.SelectedUsers) newConv.ParticipantIds.Add(user.Id);
             _repo.AddConversation(newConv); ChatList.ItemsSource = _repo.GetConversationsForUser(_currentUser.Id);
         }
-    }
-
-    public void Search_TextChanged(object sender, TextChangedEventArgs e) {
-        string s = SearchInput.Text?.ToLower() ?? "";
-        bool show = !string.IsNullOrWhiteSpace(s);
-        SearchResults.IsVisible = show;
-        if (show && _activeChat != null) SearchResults.ItemsSource = _repo.GetMessagesForConversation(_activeChat.Id)
-            .Where(m => m.Text.ToLower().Contains(s)).Select(m => new MessageViewModel { Id = m.Id, Text = m.Text }).ToList();
     }
 
     public void Result_Selected(object sender, SelectionChangedEventArgs e) {

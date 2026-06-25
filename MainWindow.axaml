@@ -5,6 +5,10 @@
         x:Class="MessengerGui.MainWindow"
         Title="Messenger GUI" Width="900" Height="500">
 
+    <Window.Resources>
+        <local:StringToBitmapConverter x:Key="PathToImageConverter"/>
+    </Window.Resources>
+
     <Window.Styles>
         <Style Selector="Button">
             <Setter Property="Background" Value="#ff007f"/>
@@ -75,14 +79,12 @@
                         <DataTemplate x:DataType="models:MessageViewModel">
                             <StackPanel Margin="2">
                                 <TextBlock Text="{Binding DateHeader}" IsVisible="{Binding ShowDateHeader}" HorizontalAlignment="Center" Foreground="Gray" FontSize="10" Margin="0,5"/>
-                                
-                                <TextBlock Text="{Binding SenderName}" FontSize="10" Foreground="Gray" 
-                                           HorizontalAlignment="{Binding IsCurrentUser, Converter={x:Static local:BoolToAlignmentConverter.Instance}}"/>
-                                
+                                <TextBlock Text="{Binding SenderName}" FontSize="10" Foreground="Gray" HorizontalAlignment="{Binding IsCurrentUser, Converter={x:Static local:BoolToAlignmentConverter.Instance}}"/>
                                 <StackPanel HorizontalAlignment="{Binding IsCurrentUser, Converter={x:Static local:BoolToAlignmentConverter.Instance}}">
                                     <Border Margin="0,2" Padding="10" CornerRadius="10" Background="{Binding Converter={x:Static local:MessageColorConverter.Instance}}">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Text}" Foreground="Black"/>
+                                            <Image Source="{Binding FilePath, Converter={StaticResource PathToImageConverter}}" MaxWidth="200" IsVisible="{Binding HasFile}" Margin="0,0,0,5"/>
+                                            <TextBlock Text="{Binding Text}" Foreground="Black" IsVisible="{Binding !HasFile}"/>
                                             <TextBlock Text="{Binding TimeDisplay}" FontSize="9" Foreground="Gray" HorizontalAlignment="Right"/>
                                         </StackPanel>
                                     </Border>
@@ -111,8 +113,9 @@
                             </Flyout>
                         </Button.Flyout>
                     </Button>
-                    <TextBox Name="MessageInput" Width="260" Watermark="Текст..." KeyDown="MessageInput_KeyDown"/>
-                    <Button Content="Надіслати" Click="Send_Message"/>
+                    <Button Content="📎" Click="Attach_File_Click" Width="40"/>
+                    <TextBox Name="MessageInput" Width="220" Watermark="Текст..." KeyDown="MessageInput_KeyDown"/>
+                    <Button Content="Надіслити" Click="Send_Message"/>
                 </StackPanel>
             </Grid>
         </Grid>

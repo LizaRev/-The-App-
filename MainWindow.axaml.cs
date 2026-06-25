@@ -13,8 +13,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls.Primitives;
+using System.IO;
+using Avalonia.Media.Imaging;
 
 namespace MessengerGui;
+
+public class StringToBitmapConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        if (value is string path && File.Exists(path))
+        {
+            try { return new Bitmap(path); }
+            catch { return null; }
+        }
+        return null;
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture) => throw new NotImplementedException();
+}
 
 public static class BoolToAlignmentConverter {
     public static FuncValueConverter<bool, HorizontalAlignment> Instance = new(b => b ? HorizontalAlignment.Right : HorizontalAlignment.Left);
@@ -38,6 +54,33 @@ public partial class MainWindow : Window
 
     public MainWindow() { InitializeComponent(); UserListBox.ItemsSource = _repo.GetUsers(); }
 
+    public async void Attach_File_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog();
+        dialog.Filters.Add(new FileDialogFilter { Name = "Images", Extensions = { "jpg", "png" } });
+        var result = await dialog.ShowAsync(this);
+        
+        if (result != null && result.Length > 0 && _activeChat != null && _currentUser != null) 
+        {
+            string sourcePath = result[0];
+            string uploadDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Uploads");
+            Directory.CreateDirectory(uploadDir);
+            
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(sourcePath);
+            string destPath = Path.Combine(uploadDir, fileName);
+            File.Copy(sourcePath, destPath, true);
+
+            _repo.AddMessage(new Message { 
+                ConversationId = _activeChat.Id, 
+                SenderId = _currentUser.Id, 
+                Text = "", 
+                FilePath = destPath, 
+                Timestamp = DateTime.Now 
+            });
+            RefreshMessages();
+        }
+    }
+
     public void Insert_Emoji(object sender, RoutedEventArgs e) {
         if (sender is Button btn && btn.Content is string emoji) { 
             MessageInput.Text += emoji; 
@@ -59,7 +102,8 @@ public partial class MainWindow : Window
                 Text = m.Text, 
                 Timestamp = m.Timestamp,
                 SenderName = _repo.GetUsers().FirstOrDefault(u => u.Id == m.SenderId)?.Username ?? "Unknown",
-                IsCurrentUser = (m.SenderId == _currentUser.Id)
+                IsCurrentUser = (m.SenderId == _currentUser.Id),
+                FilePath = m.FilePath
             };
 
             if (m.Timestamp.Date != lastDate.Date) {

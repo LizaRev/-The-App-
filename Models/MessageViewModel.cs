@@ -7,6 +7,9 @@ public class MessageViewModel {
     
     public string Text { get; set; } = string.Empty;
     public string SenderName { get; set; } = string.Empty;
+    public string? FilePath { get; set; }
+    
+    public bool HasFile => !string.IsNullOrEmpty(FilePath);
     
     public DateTime Timestamp { get; set; } = DateTime.Now;
     public bool IsCurrentUser { get; set; }

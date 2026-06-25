@@ -44,7 +44,10 @@ namespace MessengerGui.Storage
 
         public bool AddMessage(Message message)
         {
-            if (string.IsNullOrWhiteSpace(message.Text)) return false;
+            // Тепер можна відправити, якщо є ТЕКСТ АБО ФАЙЛ
+            if (string.IsNullOrWhiteSpace(message.Text) && string.IsNullOrWhiteSpace(message.FilePath)) 
+                return false;
+                
             _db.Messages.Add(message);
             _db.SaveChanges();
             return true;
